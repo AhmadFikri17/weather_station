@@ -1,0 +1,70 @@
+/* Custom Styles for Weather Monitoring Dashboard */
+
+/* Scrollbar Hide */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Pulse Animation for Online Status */
+.pulse-dot {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Info Panel Transition */
+.info-panel {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+    padding: 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    width: auto !important;
+}
+
+/* Custom Map Styles */
+#map {
+    background-color: #e5e7eb;
+}
+
+/* Leaflet Scale Control Styling */
+.leaflet-control-scale {
+    background: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    border: 1px solid #e5e7eb;
+    font-size: 11px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.leaflet-control-scale-line {
+    border: 2px solid #374151;
+    border-top: none;
+    color: #374151;
+    font-size: 11px;
+    text-align: center;
+    white-space: nowrap;
+    padding: 2px 5px 1px;
+    background: white;
+}

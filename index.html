@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Monitoring IoT - Peta</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- NAVBAR -->
+    <nav class="bg-[#2c3e50] text-white px-6 py-3 flex justify-between items-center shadow-md z-30">
+        <div class="flex items-center space-x-3">
+            <img src="assets/logo.png" alt="Logo" class="h-10 w-10 object-contain">
+            <div>
+                <h1 class="font-bold text-lg leading-tight">Automatic Weather Station</h1>
+                <p class="text-sm text-gray-300">BRMP Aneka Kacang (Malang)</p>
+            </div>
+        </div>
+        <div class="flex space-x-6 text-sm font-semibold">
+            <a href="#" class="hover:text-yellow-400">FWI</a>
+            <a href="#" class="hover:text-yellow-400">HPT</a>
+            <a href="#" class="hover:text-yellow-400">KAT</a>
+            <a href="#" class="hover:text-yellow-400">DBD</a>
+            <a href="#" class="hover:text-yellow-400">Credits</a>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex-1 relative flex overflow-hidden">
+        
+        <div id="map" class="absolute inset-0 z-0"></div>
+
+        <!-- OVERLAY: LEGENDA -->
+        <div class="absolute bottom-6 left-6 bg-white p-4 rounded-lg shadow-lg z-20 w-80 text-sm border border-gray-200">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold text-gray-800 text-xs">Skala Warna Suhu Udara (°C)</h3>
+                <i class="fa-solid fa-xmark text-gray-400 cursor-pointer"></i>
+            </div>
+            <div class="w-full h-2 rounded-full mb-1" style="background: linear-gradient(to right, #00bcd4, #4caf50, #ffeb3b, #ff9800, #f44336);"></div>
+            <div class="flex justify-between text-[10px] text-gray-500 mb-3">
+                <span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>
+            </div>
+            
+            <h3 class="font-bold text-gray-800 mb-2 text-xs">Simbol Kecepatan dan Arah Angin</h3>
+            <ul class="space-y-1.5 text-[11px] text-gray-600">
+                <li class="flex items-center"><div class="w-5 h-5 rounded-full bg-gray-500 text-white flex items-center justify-center font-bold mr-2 text-[9px]">X</div> Stasiun tidak terkoneksi internet.</li>
+                <li class="flex items-center"><div class="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold mr-2 text-[9px]">30</div> Stasiun aktif dan angka menunjukkan suhu.</li>
+                <li class="flex items-center"><div class="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold mr-2 text-[9px]"><i class="fa-solid fa-cloud-rain"></i></div> Stasiun dan wilayah sekitar sedang hujan.</li>
+            </ul>
+        </div>
+
+        <!-- OVERLAY: WAKTU & KONTROL -->
+        <div class="absolute top-6 right-6 z-20 flex flex-col items-end space-y-3">
+            <div id="clock-display" class="bg-white px-4 py-2 rounded shadow-md text-xs font-medium text-gray-700 border border-gray-200">
+                Waktu: Menunggu Data...
+            </div>
+            <div class="bg-white rounded shadow-md flex flex-col border border-gray-200 overflow-hidden">
+                <button id="layer-btn" onclick="toggleLayerMenu()" class="p-2 hover:bg-gray-100 border-b"><i class="fa-solid fa-layer-group text-gray-600 text-sm"></i></button>
+                <button onclick="map.zoomIn()" class="p-2 hover:bg-gray-100 border-b font-bold text-gray-600 text-sm">+</button>
+                <button onclick="map.zoomOut()" class="p-2 hover:bg-gray-100 border-b font-bold text-gray-600 text-sm">-</button>
+                <button onclick="resetView()" class="p-2 hover:bg-gray-100"><i class="fa-solid fa-location-arrow text-gray-600 text-sm"></i></button>
+            </div>
+        </div>
+
+        <!-- OVERLAY: LAYER MENU -->
+        <div id="layer-menu" class="hidden absolute top-6 right-32 z-20 bg-white rounded shadow-lg border border-gray-200 overflow-hidden w-48">
+            <div class="px-4 py-2 bg-gray-50 border-b">
+                <h3 class="text-xs font-bold text-gray-700">Pilih Jenis Peta</h3>
+            </div>
+            <div class="p-2">
+                <button onclick="changeLayer('OpenStreetMap')" class="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 rounded flex items-center space-x-2">
+                    <i class="fa-solid fa-map text-gray-600"></i> <span>Default</span>
+                </button>
+                <button onclick="changeLayer('Satellite')" class="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 rounded flex items-center space-x-2">
+                    <i class="fa-solid fa-satellite text-gray-600"></i> <span>Satellite</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- OVERLAY: PANEL INFORMASI SINGKAT -->
+        <div id="info-panel" class="info-panel hidden opacity-0 translate-y-[-10px] absolute top-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-xl z-40 w-[350px] border border-gray-300 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-2 border-b flex justify-between items-center">
+                <h3 id="info-title" class="font-bold text-gray-800 text-sm">AWS Malang</h3>
+                <button onclick="closeInfoPanel()" class="text-gray-400 hover:text-red-500 text-lg font-bold">&times;</button>
+            </div>
+            <div class="p-4 text-xs text-gray-600">
+                <div class="text-center mb-3">
+                    <p id="info-time" class="text-[10px] text-gray-500">Waktu: --</p>
+                    <p class="text-[10px] text-gray-500">Lat: -8.0474  Lon: 112.6252  Alt: 500 MDPL</p>
+                    <p id="info-status" class="text-green-500 font-bold mt-1 text-xs">Online</p>
+                </div>
+                <div class="grid grid-cols-2 gap-y-2 gap-x-4 mb-4">
+                    <div class="text-center">
+                        <p class="font-semibold text-gray-700">Intensitas Hujan</p>
+                        <p id="info-rain" class="text-sm font-bold text-gray-900">-- mm</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-semibold text-gray-700">Radiasi Matahari</p>
+                        <p id="info-lux" class="text-sm font-bold text-gray-900">-- W/m²</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-semibold text-gray-700">Suhu Udara</p>
+                        <p id="info-temp" class="text-sm font-bold text-red-500">-- °C</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-semibold text-gray-700">Suhu Titik Embun</p>
+                        <p class="text-sm font-bold text-gray-900">-- °C</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-semibold text-gray-700">Kelembapan Udara</p>
+                        <p id="info-hum" class="text-sm font-bold text-blue-500">-- %</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-semibold text-gray-700">Tekanan Udara</p>
+                        <p class="text-sm font-bold text-gray-900">-- hPa</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-semibold text-gray-700">Kecepatan Angin</p>
+                        <p id="info-wind" class="text-sm font-bold text-gray-900">-- m/s</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-semibold text-gray-700">Arah Angin dari</p>
+                        <p id="info-dir" class="text-sm font-bold text-gray-900">--</p>
+                    </div>
+                </div>
+                <div class="border-t pt-3">
+                    <a href="dashboard.html" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors text-xs flex justify-center items-center">
+                        <i class="fa-solid fa-chart-line mr-2"></i> Lihat Dashboard Lengkap
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

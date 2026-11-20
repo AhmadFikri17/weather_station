@@ -1,0 +1,111 @@
+[
+    {
+        "id": "b91c08e9e348ed24",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "8f3ac3972e43868e",
+        "type": "http in",
+        "z": "b91c08e9e348ed24",
+        "name": "Get Data Weather",
+        "url": "/api/weather",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 130,
+        "y": 220,
+        "wires": [
+            [
+                "3c42f6fe2415c562"
+            ]
+        ]
+    },
+    {
+        "id": "3c42f6fe2415c562",
+        "type": "function",
+        "z": "b91c08e9e348ed24",
+        "name": "function 2",
+        "func": "// Ambil parameter opsional dari query string, misal ?limit=50\nconst limit = parseInt(msg.req.query.limit) || 100;\nconst safeLimit = Math.min(Math.max(limit, 1), 1000); // batasi 1-1000\n\nmsg.topic = `SELECT * FROM weather_data ORDER BY ts DESC LIMIT ${safeLimit}`;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 220,
+        "wires": [
+            [
+                "dd78eae26e1efb96"
+            ]
+        ]
+    },
+    {
+        "id": "dd78eae26e1efb96",
+        "type": "mysql",
+        "z": "b91c08e9e348ed24",
+        "mydb": "1c033305e5014080",
+        "name": "",
+        "x": 550,
+        "y": 220,
+        "wires": [
+            [
+                "c98263e5827fea05"
+            ]
+        ]
+    },
+    {
+        "id": "c98263e5827fea05",
+        "type": "function",
+        "z": "b91c08e9e348ed24",
+        "name": "Format JSON",
+        "func": "// Hasil query ada di msg.payload (array of rows)\nmsg.headers = { \"Content-Type\": \"application/json\" };\nmsg.payload = {\n    status: \"success\",\n    count: msg.payload.length,\n    data: msg.payload\n};\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 220,
+        "wires": [
+            [
+                "7ecfb032ba382511"
+            ]
+        ]
+    },
+    {
+        "id": "7ecfb032ba382511",
+        "type": "http response",
+        "z": "b91c08e9e348ed24",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 910,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "1c033305e5014080",
+        "type": "MySQLdatabase",
+        "name": "iot_weather",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "iot_weather",
+        "tz": "",
+        "charset": "UTF8"
+    },
+    {
+        "id": "d75460785fa7e227",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-node-mysql": "3.0.3"
+        }
+    }
+]

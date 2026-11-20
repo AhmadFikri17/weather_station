@@ -1,0 +1,132 @@
+[
+    {
+        "id": "2746c6ca368542e3",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "910101ad64392847",
+        "type": "mqtt in",
+        "z": "2746c6ca368542e3",
+        "name": "",
+        "topic": "weatherstation/sensors",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "b9ebc720e468dbdc",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 240,
+        "y": 240,
+        "wires": [
+            [
+                "7199e3140884c34e"
+            ]
+        ]
+    },
+    {
+        "id": "9d821d38e8b8babc",
+        "type": "mysql",
+        "z": "2746c6ca368542e3",
+        "mydb": "1c033305e5014080",
+        "name": "",
+        "x": 630,
+        "y": 240,
+        "wires": [
+            [
+                "d0aaece834abc545"
+            ]
+        ]
+    },
+    {
+        "id": "7199e3140884c34e",
+        "type": "function",
+        "z": "2746c6ca368542e3",
+        "name": "function 1",
+        "func": "// msg.payload sudah berupa objek JSON hasil parse\nconst d = msg.payload;\n\n// Validasi field penting\nif (!d.ts) {\n    node.warn(\"Payload tidak memiliki field ts, dilewati\");\n    return null; // hentikan alur\n}\n\nmsg.topic = `INSERT INTO weather_data \n    (ts, tmp, hum, wnd, knt, ang, dir, rn, lx) \n    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;\n\nmsg.payload = [\n    d.ts,\n    d.tmp,\n    d.hum,\n    d.wnd,\n    d.knt,\n    d.ang,\n    d.dir,\n    d.rn,\n    d.lx\n];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 240,
+        "wires": [
+            [
+                "9d821d38e8b8babc"
+            ]
+        ]
+    },
+    {
+        "id": "d0aaece834abc545",
+        "type": "debug",
+        "z": "2746c6ca368542e3",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 800,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "b9ebc720e468dbdc",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "335c4f56e51e42f4a5a82c5a477c3e96.s1.eu.hivemq.cloud",
+        "port": "8883",
+        "tls": "",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "1c033305e5014080",
+        "type": "MySQLdatabase",
+        "name": "iot_weather",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "iot_weather",
+        "tz": "",
+        "charset": "UTF8"
+    },
+    {
+        "id": "54decb21c97a77cb",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-node-mysql": "3.0.3"
+        }
+    }
+]
