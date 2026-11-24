@@ -4,19 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Cuaca - AWS Malang</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-100 font-sans min-h-screen flex flex-col">
 
     <!-- NAVBAR -->
     <nav class="bg-[#2c3e50] text-white px-6 py-4 flex justify-between items-center shadow-md">
         <div class="flex items-center space-x-3">
-            <a href="index.html" class="hover:text-yellow-400 font-bold text-lg mr-4"><i class="fa-solid fa-arrow-left mr-2"></i> Kembali ke Peta</a>
+            <a href="index.html" class="hover:text-yellow-400 font-bold text-lg mr-4">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Kembali ke Peta
+            </a>
             <div class="border-l border-gray-500 pl-4">
                 <h1 class="font-bold text-xl leading-tight">Dashboard Cuaca Realtime</h1>
                 <p class="text-sm text-gray-300">AWS Malang (-8.0474, 112.6252)</p>
@@ -27,9 +28,9 @@
         </div>
     </nav>
 
-    <!-- DASHBOARD CONTENT -->
-    <div class="p-6 flex-1 max-w-7xl mx-auto w-full">
-        
+    <!-- DASHBOARD CONTENT (Lebar Full) -->
+    <div class="p-4 md:p-6 w-full flex-1">
+
         <!-- Kartu Ringkasan -->
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center border-t-4 border-t-red-500">
@@ -59,109 +60,61 @@
         </div>
 
         <!-- Area Grafik -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-80">
-                <h3 class="text-sm font-bold text-gray-700 mb-4 border-b pb-2">Grafik Suhu Udara (°C)</h3>
-                <div class="relative h-64"><canvas id="chartSuhu"></canvas></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-[350px] flex flex-col">
+                <h3 class="text-sm font-bold text-gray-700 mb-2 border-b pb-2">Grafik Suhu Udara (°C)</h3>
+                <div class="relative flex-1 w-full"><canvas id="chartSuhu"></canvas></div>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-80">
-                <h3 class="text-sm font-bold text-gray-700 mb-4 border-b pb-2">Grafik Kelembapan (%)</h3>
-                <div class="relative h-64"><canvas id="chartKelembapan"></canvas></div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-[350px] flex flex-col">
+                <h3 class="text-sm font-bold text-gray-700 mb-2 border-b pb-2">Grafik Kelembapan (%)</h3>
+                <div class="relative flex-1 w-full"><canvas id="chartKelembapan"></canvas></div>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-80">
-                <h3 class="text-sm font-bold text-gray-700 mb-4 border-b pb-2">Grafik Radiasi (Lux)</h3>
-                <div class="relative h-64"><canvas id="chartRadiasi"></canvas></div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-[350px] flex flex-col">
+                <h3 class="text-sm font-bold text-gray-700 mb-2 border-b pb-2">Grafik Radiasi (Lux)</h3>
+                <div class="relative flex-1 w-full"><canvas id="chartRadiasi"></canvas></div>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-80">
-                <h3 class="text-sm font-bold text-gray-700 mb-4 border-b pb-2">Grafik Kecepatan Angin (m/s)</h3>
-                <div class="relative h-64"><canvas id="chartAngin"></canvas></div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-[350px] flex flex-col">
+                <h3 class="text-sm font-bold text-gray-700 mb-2 border-b pb-2">Grafik Kecepatan Angin (m/s)</h3>
+                <div class="relative flex-1 w-full"><canvas id="chartAngin"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Tabel Riwayat Data -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <h3 class="text-sm font-bold text-gray-700">100 Riwayat Data Terbaru</h3>
+                <!-- Tombol Aksi (Download & Refresh) -->
+                <div class="flex space-x-2">
+                    <button onclick="downloadCSV()" class="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition">
+                        <i class="fa-solid fa-file-csv mr-1"></i> Download CSV
+                    </button>
+                    <button onclick="fetchHistoryTable()" class="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                <table class="w-full text-sm text-left text-gray-600">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
+                        <tr>
+                            <th class="px-4 py-3">Waktu</th>
+                            <th class="px-4 py-3">Suhu (°C)</th>
+                            <th class="px-4 py-3">Kelembapan (%)</th>
+                            <th class="px-4 py-3">Radiasi (Lux)</th>
+                            <th class="px-4 py-3">Angin (m/s)</th>
+                            <th class="px-4 py-3">Curah Hujan (mm)</th>
+                            <th class="px-4 py-3">Arah Angin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <tr><td colspan="7" class="text-center py-4 text-gray-400">Memuat data...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <!-- Script Khusus Dashboard -->
-    <script>
-        let charts = {};
-        
-        function renderCharts(labels, suhu, hum, wind, lux) {
-            Object.values(charts).forEach(c => c.destroy());
-            
-            const opts = { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { legend: { display: false } }, 
-                scales: { x: { display: false }, y: { beginAtZero: false } }, 
-                animation: { duration: 0 } 
-            };
-
-            charts.suhu = new Chart(document.getElementById('chartSuhu').getContext('2d'), { type: 'line', data: { labels, datasets: [{ data: suhu, borderColor: '#ef4444', tension: 0.4, borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }] }, options: opts });
-            charts.lembap = new Chart(document.getElementById('chartKelembapan').getContext('2d'), { type: 'line', data: { labels, datasets: [{ data: hum, borderColor: '#3b82f6', tension: 0.4, borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)' }] }, options: { ...opts, scales: { x: { display: false }, y: { min: 0, max: 100 } } } });
-            charts.radiasi = new Chart(document.getElementById('chartRadiasi').getContext('2d'), { type: 'line', data: { labels, datasets: [{ data: lux, borderColor: '#eab308', tension: 0.4, borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(234, 179, 8, 0.1)' }] }, options: { ...opts, scales: { x: { display: false }, y: { beginAtZero: true } } } });
-            charts.angin = new Chart(document.getElementById('chartAngin').getContext('2d'), { type: 'line', data: { labels, datasets: [{ data: wind, borderColor: '#6366f1', tension: 0.4, borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: { ...opts, scales: { x: { display: false }, y: { beginAtZero: true } } } });
-        }
-
-        // Ambil Data dari API Node-RED (History)
-        fetch('http://localhost:1880/api/weather?limit=20')
-            .then(res => res.json())
-            .then(result => {
-                if (result.status === 'success' && result.data.length > 0) {
-                    const historyData = result.data.reverse();
-                    const labels = historyData.map(d => {
-                        const time = d.ts.split(' ')[1];
-                        return time ? time.substring(0, 5) : '';
-                    });
-                    renderCharts(labels, historyData.map(d=>d.tmp), historyData.map(d=>d.hum), historyData.map(d=>d.wnd), historyData.map(d=>d.lx));
-                } else {
-                    renderCharts([], [], [], [], []);
-                }
-            })
-            .catch(err => {
-                console.warn("API mati, grafik menunggu data MQTT.", err);
-                renderCharts([], [], [], [], []);
-            });
-
-        // MQTT Realtime
-        const client = mqtt.connect('wss://335c4f56e51e42f4a5a82c5a477c3e96.s1.eu.hivemq.cloud:8884/mqtt', {
-            username: 'esp32sensoriklim',
-            password: '12345678aBz',
-            clientId: 'dash_' + Math.random().toString(16).substr(2, 8)
-        });
-
-        client.on('connect', () => {
-            document.getElementById('connection-status').innerHTML = '<span class="text-green-400"><i class="fa-solid fa-circle text-xs mr-1"></i> MQTT Online</span>';
-            client.subscribe('weatherstation/sensors');
-        });
-
-        client.on('offline', () => {
-            document.getElementById('connection-status').innerHTML = '<span class="text-red-400"><i class="fa-solid fa-circle text-xs mr-1"></i> MQTT Offline</span>';
-        });
-
-        client.on('message', (topic, message) => {
-            try {
-                const data = JSON.parse(message.toString());
-
-                // Update Kartu Dashboard
-                document.getElementById('dash-temp').innerText = `${data.tmp} °C`;
-                document.getElementById('dash-hum').innerText = `${data.hum} %`;
-                document.getElementById('dash-lux').innerText = `${data.lx}`;
-                document.getElementById('dash-wind').innerText = `${data.wnd} m/s`;
-                document.getElementById('dash-rain').innerText = `${data.rn} mm`;
-                document.getElementById('dash-dir').innerText = `${data.dir}`;
-
-                // Push ke Grafik
-                if (charts.suhu) {
-                    const t = data.ts.split(' ')[1].substring(0, 5);
-                    const push = (chart, val) => {
-                        if (chart.data.labels.length > 20) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); }
-                        chart.data.labels.push(t); chart.data.datasets[0].data.push(val); chart.update('none');
-                    };
-                    push(charts.suhu, data.tmp); 
-                    push(charts.lembap, data.hum); 
-                    push(charts.radiasi, data.lx); 
-                    push(charts.angin, data.wnd);
-                }
-            } catch (e) { console.error(e); }
-        });
-    </script>
+    <script src="dashboard.js" defer></script>
 </body>
 </html>
